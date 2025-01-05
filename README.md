@@ -1,0 +1,211 @@
+# FIREBLAZE - MINI PROJECT (ICIC)
+
+This project demonstrates a MySQL-based database system designed for a banking system. The project covers various aspects such as creating an ER model, creating table structures, inserting data, and solving real-world data retrieval problems.
+
+## Step 1: Create an ER Model
+
+Create an ER diagram that outlines the relationships between different tables, including `ACCOUNT_TYPE`, `DEPARTMENTS`, `BANK_DETAILS`, `JOB_DETAILS`, `EMPLOYEES`, and `CUSTOMERS`.
+
+## Step 2: Create All Table Structures
+
+Below are the SQL queries used to create the tables in the database:
+
+### 1. Creating Database and Using It:
+
+```sql
+CREATE DATABASE ICIC;
+USE ICIC;
+```
+### 2. Creating Table 1 - ACCOUNT_TYPE:
+```sql
+CREATE TABLE ACCOUNT_TYPE
+(
+  ACCOUNT_NO INT PRIMARY KEY,
+  TYPE_ACCOUNT VARCHAR(20),
+  MANAGER_ID INT,
+  DEPARTMENT_NAME VARCHAR(20),
+  OPENING_DATE DATE
+);
+```
+### 3. Creating Table 2 - DEPARTMENTS:
+```sql
+CREATE TABLE DEPARTMENTS
+(
+  DEPARTMENT_ID INT PRIMARY KEY,
+  DEPARTMENT_NAME VARCHAR(20),
+  MANAGER_ID INT,
+  EMPLOYEE_ID INT,
+  ACCOUNT_NO INT,
+  FOREIGN KEY (ACCOUNT_NO) REFERENCES ACCOUNT_TYPE(ACCOUNT_NO)
+);
+```
+### 4. Creating Table 3 - BANK_DETAILS:
+``` sql
+CREATE TABLE BANK_DETAILS
+(
+  BRANCH_CODE INT PRIMARY KEY,
+  ADDRESS VARCHAR(20),
+  DEPARTMENT_ID INT,
+  BRANCH_NAME VARCHAR(20),
+  STATE VARCHAR(20),
+  FOREIGN KEY (DEPARTMENT_ID) REFERENCES DEPARTMENTS(DEPARTMENT_ID)
+);
+```
+### 5. Creating Table 4 - JOB_DETAILS:
+```sql
+CREATE TABLE JOB_DETAILS
+(
+  JOB_ID VARCHAR(20) PRIMARY KEY,
+  DEPARTMENT_ID INT,
+  BRANCH_CODE INT,
+  FOREIGN KEY (DEPARTMENT_ID) REFERENCES DEPARTMENTS(DEPARTMENT_ID),
+  FOREIGN KEY (BRANCH_CODE) REFERENCES BANK_DETAILS(BRANCH_CODE)
+);
+```
+### 6. Creating Table 5 - EMPLOYEES:
+```sql
+CREATE TABLE EMPLOYEES
+(
+  EMPLOYEE_ID INT PRIMARY KEY,
+  FIRST_NAME VARCHAR(20),
+  DEPARTMENT_ID INT,
+  MANAGER_ID INT,
+  JOB_ID VARCHAR(20),
+  EMAIL VARCHAR(20),
+  HIRE_DATE DATE,
+  PHONE_NO VARCHAR(30),
+  SALARY INT,
+  FOREIGN KEY (DEPARTMENT_ID) REFERENCES DEPARTMENTS(DEPARTMENT_ID),
+  FOREIGN KEY (JOB_ID) REFERENCES JOB_DETAILS(JOB_ID)
+);
+```
+### 7. Creating Table 6 - CUSTOMERS:
+```sql
+
+CREATE TABLE CUSTOMER
+(
+  ACCOUNT_NO INT PRIMARY KEY,
+  FIRST_NAME VARCHAR(30),
+  CITY VARCHAR(30),
+  BRANCH_CODE INT,
+  EMPLOYEE_ID INT,
+  PHONE_NO VARCHAR(30),
+  ATM_NO INT UNIQUE,
+  EXP_DATE DATE,
+  PIN_NO INT UNIQUE,
+  FOREIGN KEY (BRANCH_CODE) REFERENCES BANK_DETAILS(BRANCH_CODE),
+  FOREIGN KEY (EMPLOYEE_ID) REFERENCES EMPLOYEES(EMPLOYEE_ID)
+);
+```
+## Step 3: Insert Data into the Tables
+
+To insert data into the tables:
+
+Clean and format the data using Excel.
+Save the cleaned data as a CSV file.
+Import the CSV files into MySQL using the IMPORT FILE option in SQL Workbench.
+Ensure that the date formats are compatible with MySQL.
+
+## Step 4: Solve All Data Retrieving Problems
+Here are SQL queries for solving various data retrieval problems:
+
+### 1. Find an employee whose ID is 52 and branch name is 'ICICP':
+```sql
+
+SELECT E.FIRST_NAME, E.DEPARTMENT_ID, B.BRANCH_NAME, E.EMPLOYEE_ID
+FROM EMPLOYEES AS E
+JOIN BANK_DETAILS AS B ON B.DEPARTMENT_ID = E.DEPARTMENT_ID
+WHERE E.EMPLOYEE_ID = 52 AND B.BRANCH_NAME = 'ICICP';
+```
+### 2. Fetch all details for employees who don't belong to Mumbai, Pune, or Delhi:
+```sql
+
+SELECT *
+FROM BANK_DETAILS
+WHERE ADDRESS NOT IN ('MUMBAI', 'PUNE', 'DELHI');
+```
+### 3. Find department details for account number 18190:
+```sql
+
+SELECT D.DEPARTMENT_ID, D.DEPARTMENT_NAME, B.ADDRESS, C.CITY, B.BRANCH_CODE
+FROM DEPARTMENTS AS D
+INNER JOIN CUSTOMER AS C ON D.ACCOUNT_NO = C.ACCOUNT_NO
+INNER JOIN BANK_DETAILS AS B ON D.DEPARTMENT_ID = B.DEPARTMENT_ID
+WHERE D.ACCOUNT_NO = 18190;
+```
+### 4. Find department ID, department name, and job ID for departments 'Loan', 'HR', and 'Admin':
+```sql
+
+SELECT D.DEPARTMENT_ID, D.DEPARTMENT_NAME, J.JOB_ID
+FROM DEPARTMENTS AS D
+INNER JOIN JOB_DETAILS AS J ON D.DEPARTMENT_ID = J.DEPARTMENT_ID
+WHERE D.DEPARTMENT_NAME IN ('LOAN', 'HR', 'ADMIN');
+```
+### 5. Find account type, state, and account number for ATM number 422748663:
+```sql
+
+SELECT A_T.TYPE_ACCOUNT, B_D.STATE, A_T.ACCOUNT_NO
+FROM ACCOUNT_TYPE AS A_T
+INNER JOIN CUSTOMER AS C ON C.ACCOUNT_NO = A_T.ACCOUNT_NO
+INNER JOIN BANK_DETAILS AS B_D ON B_D.BRANCH_CODE = C.BRANCH_CODE
+WHERE C.ATM_NO = 422748663;
+```
+
+### 6. Create a view showing address, branch name, department name, first name, and phone number:
+```sql
+
+CREATE VIEW VIEW_EMPLOYEE AS
+SELECT B_D.ADDRESS, B_D.BRANCH_NAME, D.DEPARTMENT_NAME, C.FIRST_NAME, C.PHONE_NO
+FROM DEPARTMENTS AS D
+INNER JOIN BANK_DETAILS AS B_D ON B_D.DEPARTMENT_ID = D.DEPARTMENT_ID
+INNER JOIN CUSTOMER AS C ON B_D.BRANCH_CODE = C.BRANCH_CODE;
+```
+
+### 7. Create a view showing city, department name, and hire date for employees hired after May 24, 2004:
+```sql
+
+CREATE VIEW VIEW_CITY AS
+SELECT C.CITY, D.DEPARTMENT_NAME, E.HIRE_DATE
+FROM DEPARTMENTS AS D
+INNER JOIN EMPLOYEES AS E ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+INNER JOIN CUSTOMER AS C ON C.ACCOUNT_NO = D.ACCOUNT_NO
+WHERE E.HIRE_DATE > '2004-05-24';
+```
+### 8. Create a view showing job details for 'clerk', 'manager', and 'accountant':
+```sql
+
+CREATE VIEW EMPLOYEE_JOB_DETAILS AS
+SELECT A_T.ACCOUNT_NO, A_T.TYPE_ACCOUNT, A_T.MANAGER_ID, A_T.DEPARTMENT_NAME,
+       A_T.OPENING_DATE, D.DEPARTMENT_ID, D.EMPLOYEE_ID, B_D.BRANCH_CODE,
+       B_D.ADDRESS, B_D.BRANCH_NAME, B_D.STATE, J_D.JOB_ID, E.FIRST_NAME,
+       E.EMAIL, E.HIRE_DATE, E.PHONE_NO, E.SALARY, C.ATM_NO, C.EXP_DATE, C.PIN_NO, C.CITY
+FROM ACCOUNT_TYPE AS A_T
+INNER JOIN DEPARTMENTS AS D ON A_T.ACCOUNT_NO = D.ACCOUNT_NO
+INNER JOIN BANK_DETAILS AS B_D ON B_D.DEPARTMENT_ID = D.DEPARTMENT_ID
+INNER JOIN JOB_DETAILS AS J_D ON J_D.BRANCH_CODE = B_D.BRANCH_CODE
+INNER JOIN EMPLOYEES AS E ON E.JOB_ID = J_D.JOB_ID
+INNER JOIN CUSTOMER AS C ON E.EMPLOYEE_ID = C.EMPLOYEE_ID
+WHERE J_D.JOB_ID IN ('FI_ACCOUNT', 'ST_CLERK', 'ST_MAN');
+```
+
+### 9. Update the ATM number in the Customer table:
+```sql
+
+UPDATE CUSTOMER
+SET ATM_NO = 42321992
+WHERE ATM_NO = 423295535;
+```
+### 10. Change all 'Sales' account types to 'Admin':
+```sql
+
+SET SQL_SAFE_UPDATES = 0;
+UPDATE ACCOUNT_TYPE
+SET DEPARTMENT_NAME = 'ADMIN'
+WHERE DEPARTMENT_NAME = 'SALES';
+```
+
+# Conclusion
+This mini project demonstrates practical skills in database design, data manipulation, and advanced SQL query writing. It also covers creating and managing views and handling data insertion from CSV files.
+
+
+
